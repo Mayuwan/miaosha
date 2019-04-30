@@ -1,8 +1,10 @@
 package com.mayuwan.miaosha.domain;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
-public class Goods {
+public class Goods implements Serializable {
+    private static final long serialVersionUID = -9113481969116694961L;
     private Long id;
 
     private String goodsName;

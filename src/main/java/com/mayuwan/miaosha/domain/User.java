@@ -1,8 +1,10 @@
 package com.mayuwan.miaosha.domain;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class User {
+public class User implements Serializable {
+    private static final long serialVersionUID = 4163166526198829014L;
     private Long id;
 
     private String nickname;

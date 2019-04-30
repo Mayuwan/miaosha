@@ -12,5 +12,6 @@ public class UserKey extends BaseKeyPrefix {
     }
 
     public static UserKey getByToken = new UserKey(USER_TOKEN_TIME,"token");
+    public static UserKey getById = new UserKey("id");
 //    public static OrderKey getByName = new OrderKey(0,"name");
 }

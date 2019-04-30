@@ -1,9 +1,11 @@
 package com.mayuwan.miaosha.domain;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
-public class MiaoshaGoods {
+public class MiaoshaGoods implements Serializable {
+    private static final long serialVersionUID = 6897215496713389613L;
     private Long id;
 
     private Long goodsId;

@@ -3,6 +3,7 @@ package com.mayuwan.miaosha.controller;
 import com.mayuwan.miaosha.common.RespBaseVo;
 import com.mayuwan.miaosha.common.RespSucVo;
 import com.mayuwan.miaosha.common.redis.RedisService;
+import com.mayuwan.miaosha.domain.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,12 +44,11 @@ public class TestController {
 //        return RespSucVo.success(redisService.get("2",String.class));
 //    }
 //
-//    @RequestMapping("setRedis")
-//    @ResponseBody
-//    public RespSucVo setRedis(){
-//        redisService.set("3","add from front");
-//        return RespSucVo.success(null);
-//    }
+    @RequestMapping("getUser")
+    @ResponseBody
+    public RespSucVo getUser(User user){
+        return RespSucVo.success(user);
+    }
 
 
 }

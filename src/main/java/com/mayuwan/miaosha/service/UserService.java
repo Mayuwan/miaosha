@@ -30,7 +30,7 @@ public class UserService {
         String mobile = vo.getMobile();
         String formPass = vo.getPassword();
         //验证手机号是否存在
-        User user = userMapper.getById(Long.valueOf(mobile));
+        User user = getById(Long.valueOf(mobile));
         if(user == null){
             throw new GlobalException(RespBaseVo.MOBILE_UNEXIST);
         }
@@ -51,6 +51,7 @@ public class UserService {
     }
 
     private void addCookie(HttpServletResponse response,User user,String token){
+        //放缓存
         redisServic.set(UserKey.getByToken,token,user);
         Cookie cookie = new Cookie(COOKIE_NAME_TOKEN,token);
         cookie.setMaxAge(UserKey.getByToken.expireSeconds());
@@ -68,5 +69,42 @@ public class UserService {
             addCookie(response,user,token);
         }
         return user;
+    }
+
+    /**
+     * 先取缓存，缓存取不到取数据库，并放缓存一份
+     * */
+    public User getById(Long mobile){
+        //取缓存
+        User user = redisServic.get(UserKey.getById,""+mobile,User.class);
+        if(user != null){
+            return user;
+        }
+        user = userMapper.getById(Long.valueOf(mobile));
+        if(user != null){
+            redisServic.set(UserKey.getById,""+mobile,user);
+        }
+        return user;
+    }
+
+
+    /**
+     *先更新数据库，再更新缓存
+     * */
+    public boolean updatePassword(String token,Long id,String formPass){
+        User user  = getById(id);
+        if(user == null){
+            throw new GlobalException(RespBaseVo.MOBILE_UNEXIST);
+        }
+        //更新数据库
+        User toBeUpdate = new User();
+        toBeUpdate.setId(id);
+        toBeUpdate.setPassword(Md5Util.formPassToDBPass(formPass,user.getSalt()));
+        userMapper.updateByPrimaryKeySelective(toBeUpdate);
+        //更新缓存，需要更新两个地方
+        user.setPassword(Md5Util.formPassToDBPass(formPass,user.getSalt()));
+        redisServic.set(UserKey.getByToken,token,user);
+        redisServic.set(UserKey.getById,""+id,user);
+        return true;
     }
 }
