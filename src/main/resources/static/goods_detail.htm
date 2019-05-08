@@ -31,45 +31,92 @@
      </tr>  
      <tr>  
         <td>商品图片</td>  
-        <td colspan="3"><img id="goodsImg" src="${goods.goodsImg}" width="200" height="200" /></td>
+        <td colspan="3"><img id="goodsImg" width="200" height="200" /></td>
      </tr>
      <tr>  
         <td>秒杀开始时间</td>  
-        <td  id="startTime" text="${#dates.format(goods.startDate, 'yyyy-MM-dd HH:mm:ss')}"></td>
-        <td id="miaoshaTip">	
-        	<input type="hidden" id="remainSeconds"  value="${remainSeconds}" />
+        <td  id="startTime" ></td>
+        <td >
+            <span id="miaoshaTip"></span>
+        	<input type="hidden" id="remainSeconds"   />
         	<!--<span  if="${miaoshaStatus eq 0}">秒杀倒计时：<span id="countDown"  text="${remianSeconds}" ></span>秒</span>-->
         	<!--<span  if="${miaoshaStatus eq 1}">秒杀进行中</span>-->
         	<!--<span  if="${miaoshaStatus eq 2}">秒杀已结束</span>-->
         </td>
         <td>
-        	<form id="miaoshaForm" method="post" action="/miaosha/do_miaosha">
-        		<button class="btn btn-primary btn-block" type="submit" id="buyButton">立即秒杀</button>
-        		<input type="hidden" name="goodsId"  id="goodsId" />
-        	</form>
+        	<!--<form id="miaoshaForm" method="post" action="/miaosha/do_miaosha">--
+        	<!--</form>-->
+            <div class="row">
+                <div class="form-inline">
+                    <img id="verifyCodeImg" width="80" height="32"  style="display:none" onclick="refreshVerifyCode()"/>
+                    <input id="verifyCode"  class="form-control" style="display:none"/>
+                    <button class="btn btn-primary" type="button" id="buyButton"onclick="getMiaoshaPath()">立即秒杀</button>
+                </div>
+            </div>
+            <input type="hidden" name="goodsId"  id="goodsId" />
         </td>
      </tr>
      <tr>  
         <td>商品原价</td>  
-        <td colspan="3" id="goodsPrice"  text="${goods.goodsPrice}"></td>
+        <td colspan="3" id="goodsPrice"  ></td>
      </tr>
       <tr>  
         <td>秒杀价</td>  
-        <td colspan="3" id="miaoshaPrice" text="${goods.miaoshaPrice}"></td>
+        <td colspan="3" id="miaoshaPrice" ></td>
      </tr>
      <tr>  
         <td>库存数量</td>  
-        <td colspan="3" id="stockCount"  text="${goods.stockCount}"></td>
+        <td colspan="3" id="stockCount"></td>
      </tr>
   </table>
 </div>
 </body>
 <script>
+function render(data) {
+    var miaoshaStatus = data.miaoshaStatus;
+    var remainSeconds = data.remainSeconds;
+    var goods =data.goodsVo;
+    var user = data.user;
+
+    $("#goodsName").text(goods.goodsName);
+    $("#goodsImg").attr("src",goods.goodsImg);
+    $("#startTime").text(new Date(goods.startDate).format("yyyy-MM-dd hh:mm:ss"));
+    $("#remainSeconds").val(remainSeconds);
+    $("#goodsPrice").text(goods.goodsPrice);
+    $("#miaoshaPrice").text(goods.miaoshaPrice);
+    $("#stockCount").text(goods.stockCount);
+    $("#goodsId").val(goods.id);
+    countDown();
+}
+
 $(function(){
 	// countDown();
     detail();
 });
-
+function refreshVerifyCode() {
+    $("#verifyCodeImg").attr("src","/miaosha/getVerifyCode?goodsId="+$("#goodsId").val()+"&timestamp="+new Date().getTime());
+}
+function getMiaoshaPath() {
+    $.ajax({
+        url:"/miaosha/getMiaoshaPath/",
+        type: "GET",
+        data:{
+            goodsId:$("#goodsId").val(),
+            verifyCode:$("#verifyCode").val()
+        },
+        success: function (data) {
+            if(data.code ==0){
+                doMiaosha(data.data);
+            }
+            else{
+                layer.msg(data.msg);
+            }
+        },
+        error:function () {
+            layer.msg(data.msg);
+        }
+    })
+}
 function detail(){
     var goodsId = g_getQueryString("goodsId");
     $.ajax({
@@ -88,18 +135,73 @@ function detail(){
         }
     })
 }
-function render(data) {
-    var miaoshaStatus = data.miaoshaStatus;
-    var remainSeconds = data.remainSeconds;
-    var goodsVo =data.goodsVo;
-    var user = data.user;
-    $("#goodsName").text(goodsVo.goodsName);
+function getMiaoshaResult() {
+    $.ajax({
+        url:"/miaosha/getResult/",
+        type: "GET",
+        data:{
+            goodsId:$("#goodsId").val(),
+        },
+        success: function (data) {
+            if(data.code ==0){
+                // window.location.href="/order_detail.htm?orderId="+data.data.id;v
+                var res = data.data;
+                if(res > 0){
+                    layer.confirm("恭喜你，秒杀成功！查看订单？", {btn:["确定","取消"]},
+                        function(){
+                            window.location.href="/order_detail.htm?orderId="+res;
+                        },
+                        function(){
+                            layer.closeAll();
+                        });
+                }
+                else if(res == 0){//继续轮询
+                    setTimeout(function(){
+                        getMiaoshaResult(goodsId);
+                    }, 50);
+                }
+                else{
+                    layer.msg("商品已秒杀完，活动结束");
+                }
+            }
+            else{
+                layer.msg(data.msg);
+            }
+        },
+        error:function () {
+            layer.msg(data.msg);
+        }
+    })
 }
+function doMiaosha(path){
+    $.ajax({
+        url:"/miaosha/"+path+"/miaosha",
+        type: "POST",
+        data:{
+          goodsId:$("#goodsId").val(),
+        },
+        success: function (data) {
+            if(data.code == 0){
+                // window.location.href="/order_detail.htm?orderId="+data.data.id;
+                getMiaoshaResult();
+            }
+            else{
+                layer.msg(data.msg);
+            }
+        },
+        error:function () {
+            layer.msg(data.msg);
+        }
+    })
+}
+
+
 function countDown(){
     var remainSeconds = $("#remainSeconds").val();
     var timeout;
     if(remainSeconds > 0){//倒计时
         $("#buyButton").attr("disabled",true);
+        $("#miaoshaTip").html("秒杀倒计时："+remainSeconds+"秒");
         //倒计时计时器
         timeout = setTimeout(function () {
             $("#countDown").text(remainSeconds-1);
@@ -113,9 +215,16 @@ function countDown(){
         if(timeout){
             clearTimeout();
         }
+        $("#miaoshaTip").html("秒杀进行中");
+        $("#verifyCodeImg").attr("src","/miaosha/getVerifyCode?goodsId="+$("#goodsId").val());
+        $("#verifyCodeImg").show();
+        $("#verifyCode").show();
     }
     else{
         $("#buyButton").attr("disabled",true);
+        $("#miaoshaTip").html("秒杀结束");
+        $("#verifyCodeImg").hide();
+        $("#verifyCode").hide();
     }
 
 }

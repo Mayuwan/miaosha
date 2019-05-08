@@ -16,7 +16,7 @@
 
         <!-- 数据库连接 -->
         <jdbcConnection driverClass="com.mysql.jdbc.Driver"
-                        connectionURL="jdbc:mysql://10.177.143.92:3306/miaosha"
+                        connectionURL="jdbc:mysql://10.170.2.113:3306/miaosha"
                         userId="mayuwan"
                         password="123456">
         </jdbcConnection>

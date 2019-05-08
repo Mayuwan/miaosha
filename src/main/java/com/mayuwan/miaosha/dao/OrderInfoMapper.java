@@ -2,6 +2,7 @@ package com.mayuwan.miaosha.dao;
 
 import com.mayuwan.miaosha.domain.MiaoshaOrder;
 import com.mayuwan.miaosha.domain.OrderInfo;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
@@ -20,4 +21,7 @@ public interface OrderInfoMapper {
 
 
 
+
+    @Delete("delete from order_info")
+    void deleteAll();
 }

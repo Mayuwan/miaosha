@@ -1,6 +1,7 @@
 package com.mayuwan.miaosha.common.config;
 
 import com.mayuwan.miaosha.domain.User;
+import com.mayuwan.miaosha.intercepter.UserContext;
 import com.mayuwan.miaosha.service.UserService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,27 +32,8 @@ public class UserArgumentResolver implements HandlerMethodArgumentResolver {
 
     @Override
     public Object resolveArgument(MethodParameter methodParameter, ModelAndViewContainer modelAndViewContainer, NativeWebRequest nativeWebRequest, WebDataBinderFactory webDataBinderFactory) throws Exception {
-        HttpServletRequest request = nativeWebRequest.getNativeRequest(HttpServletRequest.class);
-        HttpServletResponse response = nativeWebRequest.getNativeResponse(HttpServletResponse.class);
-        String loginToken = getCookieToken(request);
-        String paraToken = request.getParameter(UserService.COOKIE_NAME_TOKEN);//兼容其他情况
-        if(StringUtils.isBlank(loginToken) && StringUtils.isBlank(paraToken)){
-            return "login";
-        }
-        String token = StringUtils.isNotBlank(loginToken) ? loginToken : paraToken;
-        User user = userService.getByToken(response,token);
-        return user;
+        return UserContext.get();
     }
 
-    private String getCookieToken(HttpServletRequest request) {
-        if(request.getCookies() == null || request.getCookies().length <= 0){
-            return null;
-        }
-        for (Cookie cookie : request.getCookies()) {
-            if(cookie.getName().equals(UserService.COOKIE_NAME_TOKEN)){
-                return cookie.getValue();
-            }
-        }
-        return null;
-    }
+
 }

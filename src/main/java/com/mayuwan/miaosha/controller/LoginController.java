@@ -33,22 +33,16 @@ public class LoginController {
     /**
      *页面输出
      *返回类型String
+     * 省略校验代码
      * */
     public String toLogin(){
-//        logger.info("vo:{}", JSON.toJSONString(loginVo));
-        //参数校验
-//        if(){}
-        //验证手机号格式
-        //
         return "login";
     }
 
-    @RequestMapping(value = "do_login",method = RequestMethod.POST)
+    @RequestMapping(value = "do_login")
     @ResponseBody
-    public RespBaseVo doLogin(@Valid LoginVo loginVo, HttpServletResponse response,User user){
-        if(loginVo == null){
-            return RespBaseVo.SERVER_ERROR;
-        }
+    public RespBaseVo doLogin(@Valid LoginVo loginVo, HttpServletResponse response){
+
         //参数校验,很麻烦，使用JSR303来进行参数校验，代码简洁且省时间
 //        if(StringUtils.isBlank(loginVo.getMobile())){
 //            return RespBaseVo.MOBILE_EMPTY;
@@ -61,7 +55,7 @@ public class LoginController {
 //            return RespBaseVo.MOBILE_FORMAT_ERROR;
 //        }
 
-        userService.login(loginVo, response,user);
+        userService.login(loginVo, response);
         return RespBaseVo.SUCCESS;
     }
 }

@@ -1,6 +1,7 @@
 package com.mayuwan.miaosha.dao;
 
 import com.mayuwan.miaosha.domain.MiaoshaOrder;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -19,4 +20,10 @@ public interface MiaoshaOrderMapper {
     int updateByPrimaryKey(MiaoshaOrder record);
 
     MiaoshaOrder selectMiaoshaOrderByUserIdGoodsId(@Param("userId") Long userId, @Param("goodsId") Long goodsId);
+
+
+    @Delete({"delete from miaosha_order"})
+    void deleteAll();
+
+
 }

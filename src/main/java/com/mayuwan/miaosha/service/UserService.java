@@ -26,7 +26,10 @@ public class UserService {
 
     public static final String COOKIE_NAME_TOKEN = "token";
 
-    public boolean login(LoginVo vo, HttpServletResponse response,User redisUser){
+    public boolean login(LoginVo vo, HttpServletResponse response){
+        if(vo == null){
+            throw new GlobalException(RespBaseVo.FRONTEND_ERROR);
+        }
         String mobile = vo.getMobile();
         String formPass = vo.getPassword();
         //验证手机号是否存在
@@ -39,12 +42,10 @@ public class UserService {
         if(!user.getPassword().equals(pass)){
             throw new GlobalException( RespBaseVo.PASSWORD_ERROR);
         }
-        if(redisUser == null){
-            //生成cookie
-            String token = UUIDUtil.uuid();
-            addCookie(response,user,token);
-        }
-
+        //生成随机token
+        String token = UUIDUtil.uuid();
+        //将token放缓存并传给前端
+        addCookie(response,user,token);
         //前端页面跳转
 
         return true;

@@ -103,4 +103,10 @@
       end_date = #{endDate,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
+
+  <!--<update id="updateStock" parameterType="com.mayuwan.miaosha.domain.MiaoshaGoods">-->
+    <!--update miaosha_goods-->
+    <!--set stock_count= #{stockCount}-->
+    <!--where id = #{id,jdbcType=BIGINT} and stock_count > 0-->
+  <!--</update>-->
 </mapper>

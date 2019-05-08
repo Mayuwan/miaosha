@@ -1,36 +1,38 @@
 package com.mayuwan.miaosha.service;
 
+import com.mayuwan.miaosha.common.redis.MiaoshaKey;
+import com.mayuwan.miaosha.common.redis.OrderKey;
 import com.mayuwan.miaosha.common.redis.RedisService;
-import com.mayuwan.miaosha.dao.GoodsMapper;
 import com.mayuwan.miaosha.dao.MiaoshaOrderMapper;
 import com.mayuwan.miaosha.dao.OrderInfoMapper;
 import com.mayuwan.miaosha.domain.MiaoshaOrder;
 import com.mayuwan.miaosha.domain.OrderInfo;
 import com.mayuwan.miaosha.domain.User;
 import com.mayuwan.miaosha.vo.GoodsVo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.util.Date;
-import java.util.List;
 
 @Service
 public class OrderService {
+    private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
+
     @Autowired
     RedisService redisServic;
     @Autowired
     OrderInfoMapper orderInfoMapper;
     @Autowired
-    MiaoshaGoodsService miaoshaGoodsService;
+    GoodsService goodsService;
     @Autowired
-    MiaoshaOrderService miaoshaOrderService;
+    OrderService orderService;
+    @Autowired
+    MiaoshaOrderMapper miaoshaOrderMapper;
 
-
-
-    /**
-     * 同时向订单表和秒杀订单表里写
-     * */
 
 
     public OrderInfo insert(Long userId,GoodsVo goodsVo){
@@ -49,14 +51,39 @@ public class OrderService {
         return orderInfo;
     }
 
-    @Transactional
-    public OrderInfo miaosha(User user, GoodsVo goodsVo) {
-        //减少秒杀商品表的库存
-        miaoshaGoodsService.reduceStock(goodsVo);
-        //订单表增加
-        OrderInfo orderInfo = insert(user.getId(),goodsVo);
-        //秒杀订单表增加
-        miaoshaOrderService.insert(user.getId(),goodsVo.getId(),orderInfo.getId());
-        return orderInfo;
+
+    public OrderInfo getById(Long id){
+        return orderInfoMapper.selectByPrimaryKey(id);
+    }
+
+
+
+
+    /**加缓存
+     * */
+    public MiaoshaOrder getMiaoshaOrderByUserIdGoodsId(Long userId, Long goodsId) {
+        MiaoshaOrder miaoshaOrder = redisServic.get(OrderKey.getByUserIdGoodsId,""+userId+"_"+goodsId,MiaoshaOrder.class);
+        if (miaoshaOrder!=null) {
+            return miaoshaOrder;
+        }
+        miaoshaOrder = miaoshaOrderMapper.selectMiaoshaOrderByUserIdGoodsId(userId,goodsId);
+        if(miaoshaOrder!=null){
+            redisServic.set(OrderKey.getByUserIdGoodsId,""+userId+"_"+goodsId,miaoshaOrder);
+        }
+        return miaoshaOrder;
+    }
+
+    public Long insert(Long userId, Long goodId,Long orderId) {
+        MiaoshaOrder miaoshaOrder = new MiaoshaOrder();
+        miaoshaOrder.setGoodsId(goodId);
+        miaoshaOrder.setUserId(userId);
+        miaoshaOrder.setOrderId(orderId);
+        miaoshaOrderMapper.insert(miaoshaOrder);
+        return miaoshaOrder.getId();
+    }
+
+    public void deleteAll() {
+        miaoshaOrderMapper.deleteAll();
+        orderInfoMapper.deleteAll();
     }
 }

@@ -12,5 +12,5 @@ public class GoodsKey extends BaseKeyPrefix {
 
     public static GoodsKey LIST_CACHE = new GoodsKey(LIST_CACHE_TIME,"list_html");
     public static GoodsKey DETAIL_CACHE = new GoodsKey(LIST_CACHE_TIME,"detail_html");
-//    public static OrderKey getByName = new OrderKey(0,"name");
+    public static GoodsKey getStockCount = new GoodsKey("stockCount");
 }
